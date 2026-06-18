@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CatRunner</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <main class="game-shell">
+        <section class="game-panel" aria-labelledby="game-title">
+            <div class="title-row">
+                <div>
+                    <p class="eyebrow">PIXEL SIDE SCROLLER</p>
+                    <h1 id="game-title">CatRunner</h1>
+                </div>
+                <button class="back-link" id="closeButton" type="button">終了</button>
+            </div>
+
+            <div class="screen-wrap">
+                <canvas id="gameCanvas" width="960" height="540" aria-label="茶トラ猫が障害物を避ける横スクロールゲーム"></canvas>
+                <div class="start-layer" id="startLayer">
+                    <div class="start-box">
+                        <p class="status-label" id="statusLabel">READY</p>
+                        <p class="status-title" id="statusTitle">ジャンプでよけよう</p>
+                        <button class="start-button" id="startButton" type="button">START</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hud">
+                <div>
+                    <span>SCORE</span>
+                    <strong id="scoreText">0</strong>
+                </div>
+                <div>
+                    <span>BEST</span>
+                    <strong id="bestText">0</strong>
+                </div>
+                <div>
+                    <span>JUMP</span>
+                    <strong>SPACE / TAP</strong>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
