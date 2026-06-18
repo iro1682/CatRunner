@@ -121,11 +121,11 @@ function spawnObstacle() {
             hitPad: 12
         });
     } else {
-        const lowFireball = Math.random() < 0.55;
+        const lowFireball = Math.random() < 0.62;
         obstacles.push({
             type: "fireball",
             x: WIDTH + 42,
-            y: lowFireball ? FLOOR_Y - 86 - Math.random() * 22 : FLOOR_Y - 144 - Math.random() * 58,
+            y: lowFireball ? FLOOR_Y - 68 - Math.random() * 18 : FLOOR_Y - 128 - Math.random() * 58,
             width: 56,
             height: 38,
             hitPad: 8,
@@ -133,8 +133,8 @@ function spawnObstacle() {
         });
     }
 
-    const minDelay = 68 - density * 24;
-    const randomDelay = 42 - density * 16;
+    const minDelay = 50 - density * 12;
+    const randomDelay = 76 - density * 24;
     spawnTimer = minDelay + Math.random() * randomDelay;
 }
 
