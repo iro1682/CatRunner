@@ -122,18 +122,15 @@ function spawnObstacle() {
         });
     } else {
         const fireballSpeedMultiplier = 1.45;
-        const fireballSpawnX = WIDTH + 42;
         const fireballSpeed = speed * fireballSpeedMultiplier;
+        let fireballSpawnX = WIDTH + 42;
         const fireballLanes = [
             { y: FLOOR_Y - cat.height + 18, hitsCat: true },
             { y: FLOOR_Y - cat.height - 42, hitsCat: false },
             { y: FLOOR_Y - cat.height - 86, hitsCat: false }
         ];
         let lane = fireballLanes[Math.floor(Math.random() * fireballLanes.length)];
-
-        if (isFireballDuringJumpWindow(fireballSpawnX, fireballSpeed)) {
-            lane = fireballLanes[0];
-        }
+        fireballSpawnX += getFireballSafeOffset(fireballSpawnX, fireballSpeed);
 
         obstacles.push({
             type: "fireball",
@@ -152,19 +149,28 @@ function spawnObstacle() {
     spawnTimer = minDelay + Math.random() * randomDelay;
 }
 
-function isFireballDuringJumpWindow(spawnX, fireballSpeed) {
+function getFireballSafeOffset(spawnX, fireballSpeed) {
     const fireballArrivalTick = worldTick + (spawnX - cat.x) / fireballSpeed;
     const jumpStartOffset = -28;
-    const jumpEndOffset = 88;
+    const landingEndOffset = 124;
+    const safetyBuffer = 18;
 
-    return obstacles
+    const unsafeWindow = obstacles
         .filter((obstacle) => obstacle.type !== "fireball" && obstacle.x + obstacle.width > cat.x)
-        .some((obstacle) => {
+        .map((obstacle) => {
             const groundArrivalTick = worldTick + (obstacle.x - cat.x) / speed;
-            const jumpStart = groundArrivalTick + jumpStartOffset;
-            const jumpEnd = groundArrivalTick + jumpEndOffset;
-            return fireballArrivalTick >= jumpStart && fireballArrivalTick <= jumpEnd;
-        });
+            return {
+                start: groundArrivalTick + jumpStartOffset,
+                end: groundArrivalTick + landingEndOffset
+            };
+        })
+        .find((window) => fireballArrivalTick >= window.start && fireballArrivalTick <= window.end);
+
+    if (!unsafeWindow) {
+        return 0;
+    }
+
+    return (unsafeWindow.end - fireballArrivalTick + safetyBuffer) * fireballSpeed;
 }
 
 function pickObstacleType(density) {
