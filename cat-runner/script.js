@@ -121,15 +121,15 @@ function spawnObstacle() {
             hitPad: 12
         });
     } else {
-        const lowFireball = Math.random() < 0.62;
         obstacles.push({
             type: "fireball",
             x: WIDTH + 42,
-            y: lowFireball ? FLOOR_Y - 68 - Math.random() * 18 : FLOOR_Y - 128 - Math.random() * 58,
+            y: FLOOR_Y - cat.height + 10 + Math.random() * 32,
             width: 56,
             height: 38,
             hitPad: 8,
-            wave: Math.random() * 100
+            wave: Math.random() * 100,
+            speedMultiplier: 1.45
         });
     }
 
@@ -192,10 +192,10 @@ function update(deltaScale) {
     }
 
     obstacles.forEach((obstacle) => {
-        obstacle.x -= speed * deltaScale;
+        const obstacleSpeed = obstacle.type === "fireball" ? speed * obstacle.speedMultiplier : speed;
+        obstacle.x -= obstacleSpeed * deltaScale;
         if (obstacle.type === "fireball") {
             obstacle.wave += 0.13 * deltaScale;
-            obstacle.y += Math.sin(obstacle.wave) * 0.45 * deltaScale;
             if (Math.random() < 0.18) {
                 addSpark(obstacle.x + obstacle.width, obstacle.y + obstacle.height / 2);
             }
