@@ -121,10 +121,16 @@ function spawnObstacle() {
             hitPad: 12
         });
     } else {
+        const fireballHeights = [
+            FLOOR_Y - cat.height + 18,
+            FLOOR_Y - cat.height - 42,
+            FLOOR_Y - cat.height - 86
+        ];
+
         obstacles.push({
             type: "fireball",
             x: WIDTH + 42,
-            y: FLOOR_Y - cat.height + 10 + Math.random() * 32,
+            y: fireballHeights[Math.floor(Math.random() * fireballHeights.length)],
             width: 56,
             height: 38,
             hitPad: 8,
