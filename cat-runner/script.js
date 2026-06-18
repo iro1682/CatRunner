@@ -173,18 +173,25 @@ function pickObstacleType(density) {
     const recentFireballs = recent.filter((type) => type === "fireball").length;
     const lastTwo = spawnHistory.slice(-2);
 
+    if (lastTwo.length === 2 && lastTwo.every((type) => type !== "fireball")) {
+        spawnHistory.push("fireball");
+        spawnHistory = spawnHistory.slice(-8);
+        return "fireball";
+    }
+
+    if (lastTwo.length === 2 && lastTwo.every((type) => type === "fireball")) {
+        const groundType = Math.random() < 0.54 ? "crate" : "spike";
+        spawnHistory.push(groundType);
+        spawnHistory = spawnHistory.slice(-8);
+        return groundType;
+    }
+
     let fireballChance = 0.28 + density * 0.14;
     if (recentFireballs <= 1) {
         fireballChance += 0.12;
     }
     if (recentFireballs >= 3) {
         fireballChance -= 0.18;
-    }
-    if (lastTwo.length === 2 && lastTwo.every((type) => type === "fireball")) {
-        fireballChance = 0;
-    }
-    if (lastTwo.length === 2 && lastTwo.every((type) => type !== "fireball")) {
-        fireballChance = Math.max(fireballChance, 0.5);
     }
 
     const type = Math.random() < fireballChance
