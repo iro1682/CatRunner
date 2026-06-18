@@ -26,7 +26,6 @@ let worldTick = 0;
 let obstacles = [];
 let particles = [];
 let spawnHistory = [];
-let lastGroundSpawnTick = -Infinity;
 
 const cat = {
     x: 128,
@@ -48,7 +47,6 @@ function resetGame() {
     obstacles = [];
     particles = [];
     spawnHistory = [];
-    lastGroundSpawnTick = -Infinity;
     cat.y = FLOOR_Y - cat.height;
     cat.vy = 0;
     cat.grounded = true;
@@ -65,7 +63,6 @@ function returnToTitle() {
     obstacles = [];
     particles = [];
     spawnHistory = [];
-    lastGroundSpawnTick = -Infinity;
     cat.y = FLOOR_Y - cat.height;
     cat.vy = 0;
     cat.grounded = true;
@@ -124,6 +121,17 @@ function spawnObstacle() {
             hitPad: 12
         });
     } else {
+        const fireballSpeedMultiplier = 1.45;
+        const fireballSpawnX = WIDTH + 42;
+        const fireballSpeed = speed * fireballSpeedMultiplier;
+        const unsafeDelay = getFireballDelay(fireballSpawnX, fireballSpeed);
+
+        if (unsafeDelay > 0) {
+            spawnHistory.pop();
+            spawnTimer = unsafeDelay;
+            return;
+        }
+
         const fireballHeights = [
             FLOOR_Y - cat.height + 18,
             FLOOR_Y - cat.height - 42,
@@ -132,13 +140,13 @@ function spawnObstacle() {
 
         obstacles.push({
             type: "fireball",
-            x: WIDTH + 42,
+            x: fireballSpawnX,
             y: fireballHeights[Math.floor(Math.random() * fireballHeights.length)],
             width: 56,
             height: 38,
             hitPad: 8,
             wave: Math.random() * 100,
-            speedMultiplier: 1.45
+            speedMultiplier: fireballSpeedMultiplier
         });
     }
 
@@ -147,12 +155,34 @@ function spawnObstacle() {
     spawnTimer = minDelay + Math.random() * randomDelay;
 }
 
+function getFireballDelay(spawnX, fireballSpeed) {
+    const fireballArrivalTick = worldTick + (spawnX - cat.x) / fireballSpeed;
+    const unsafeStartOffset = 8;
+    const unsafeEndOffset = 74;
+
+    const unsafeWindow = obstacles
+        .filter((obstacle) => obstacle.type !== "fireball" && obstacle.x + obstacle.width > cat.x)
+        .map((obstacle) => {
+            const groundArrivalTick = worldTick + (obstacle.x - cat.x) / speed;
+            return {
+                start: groundArrivalTick + unsafeStartOffset,
+                end: groundArrivalTick + unsafeEndOffset
+            };
+        })
+        .find((window) => fireballArrivalTick >= window.start && fireballArrivalTick <= window.end);
+
+    if (!unsafeWindow) {
+        return 0;
+    }
+
+    const delay = unsafeWindow.end - fireballArrivalTick + 10 + Math.random() * 16;
+    return Math.max(12, delay);
+}
+
 function pickObstacleType(density) {
     const recent = spawnHistory.slice(-5);
     const recentFireballs = recent.filter((type) => type === "fireball").length;
     const lastTwo = spawnHistory.slice(-2);
-    const landingSafetyTicks = 130;
-    const groundLandingWindow = worldTick - lastGroundSpawnTick < landingSafetyTicks;
 
     let fireballChance = 0.28 + density * 0.14;
     if (recentFireballs <= 1) {
@@ -167,17 +197,10 @@ function pickObstacleType(density) {
     if (lastTwo.length === 2 && lastTwo.every((type) => type !== "fireball")) {
         fireballChance = Math.max(fireballChance, 0.5);
     }
-    if (groundLandingWindow) {
-        fireballChance = 0;
-    }
 
     const type = Math.random() < fireballChance
         ? "fireball"
         : (Math.random() < 0.54 ? "crate" : "spike");
-
-    if (type !== "fireball") {
-        lastGroundSpawnTick = worldTick;
-    }
 
     spawnHistory.push(type);
     spawnHistory = spawnHistory.slice(-8);
