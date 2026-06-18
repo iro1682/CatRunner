@@ -129,13 +129,11 @@ function spawnObstacle() {
             { y: FLOOR_Y - cat.height - 42, hitsCat: false },
             { y: FLOOR_Y - cat.height - 86, hitsCat: false }
         ];
-        const lane = fireballLanes[Math.floor(Math.random() * fireballLanes.length)];
-        const unsafeDelay = lane.hitsCat ? getFireballDelay(fireballSpawnX, fireballSpeed) : 0;
+        let lane = fireballLanes[Math.floor(Math.random() * fireballLanes.length)];
 
-        if (unsafeDelay > 0) {
-            spawnHistory.pop();
-            spawnTimer = unsafeDelay;
-            return;
+        if (lane.hitsCat && isLowFireballUnsafe(fireballSpawnX, fireballSpeed)) {
+            const highLanes = fireballLanes.filter((fireballLane) => !fireballLane.hitsCat);
+            lane = highLanes[Math.floor(Math.random() * highLanes.length)];
         }
 
         obstacles.push({
@@ -155,28 +153,19 @@ function spawnObstacle() {
     spawnTimer = minDelay + Math.random() * randomDelay;
 }
 
-function getFireballDelay(spawnX, fireballSpeed) {
+function isLowFireballUnsafe(spawnX, fireballSpeed) {
     const fireballArrivalTick = worldTick + (spawnX - cat.x) / fireballSpeed;
     const unsafeStartOffset = 8;
     const unsafeEndOffset = 74;
 
-    const unsafeWindow = obstacles
+    return obstacles
         .filter((obstacle) => obstacle.type !== "fireball" && obstacle.x + obstacle.width > cat.x)
-        .map((obstacle) => {
+        .some((obstacle) => {
             const groundArrivalTick = worldTick + (obstacle.x - cat.x) / speed;
-            return {
-                start: groundArrivalTick + unsafeStartOffset,
-                end: groundArrivalTick + unsafeEndOffset
-            };
-        })
-        .find((window) => fireballArrivalTick >= window.start && fireballArrivalTick <= window.end);
-
-    if (!unsafeWindow) {
-        return 0;
-    }
-
-    const delay = unsafeWindow.end - fireballArrivalTick + 10 + Math.random() * 16;
-    return Math.max(12, delay);
+            const unsafeStart = groundArrivalTick + unsafeStartOffset;
+            const unsafeEnd = groundArrivalTick + unsafeEndOffset;
+            return fireballArrivalTick >= unsafeStart && fireballArrivalTick <= unsafeEnd;
+        });
 }
 
 function pickObstacleType(density) {
@@ -191,7 +180,7 @@ function pickObstacleType(density) {
     if (recentFireballs >= 3) {
         fireballChance -= 0.18;
     }
-    if (lastTwo.every((type) => type === "fireball")) {
+    if (lastTwo.length === 2 && lastTwo.every((type) => type === "fireball")) {
         fireballChance = 0;
     }
     if (lastTwo.length === 2 && lastTwo.every((type) => type !== "fireball")) {
