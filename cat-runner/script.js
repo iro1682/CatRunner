@@ -26,6 +26,7 @@ let worldTick = 0;
 let obstacles = [];
 let particles = [];
 let spawnHistory = [];
+let lastGroundSpawnTick = -Infinity;
 
 const cat = {
     x: 128,
@@ -47,6 +48,7 @@ function resetGame() {
     obstacles = [];
     particles = [];
     spawnHistory = [];
+    lastGroundSpawnTick = -Infinity;
     cat.y = FLOOR_Y - cat.height;
     cat.vy = 0;
     cat.grounded = true;
@@ -63,6 +65,7 @@ function returnToTitle() {
     obstacles = [];
     particles = [];
     spawnHistory = [];
+    lastGroundSpawnTick = -Infinity;
     cat.y = FLOOR_Y - cat.height;
     cat.vy = 0;
     cat.grounded = true;
@@ -148,6 +151,8 @@ function pickObstacleType(density) {
     const recent = spawnHistory.slice(-5);
     const recentFireballs = recent.filter((type) => type === "fireball").length;
     const lastTwo = spawnHistory.slice(-2);
+    const landingSafetyTicks = 130;
+    const groundLandingWindow = worldTick - lastGroundSpawnTick < landingSafetyTicks;
 
     let fireballChance = 0.28 + density * 0.14;
     if (recentFireballs <= 1) {
@@ -162,10 +167,17 @@ function pickObstacleType(density) {
     if (lastTwo.length === 2 && lastTwo.every((type) => type !== "fireball")) {
         fireballChance = Math.max(fireballChance, 0.5);
     }
+    if (groundLandingWindow) {
+        fireballChance = 0;
+    }
 
     const type = Math.random() < fireballChance
         ? "fireball"
         : (Math.random() < 0.54 ? "crate" : "spike");
+
+    if (type !== "fireball") {
+        lastGroundSpawnTick = worldTick;
+    }
 
     spawnHistory.push(type);
     spawnHistory = spawnHistory.slice(-8);
