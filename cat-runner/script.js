@@ -124,7 +124,13 @@ function spawnObstacle() {
         const fireballSpeedMultiplier = 1.45;
         const fireballSpawnX = WIDTH + 42;
         const fireballSpeed = speed * fireballSpeedMultiplier;
-        const unsafeDelay = getFireballDelay(fireballSpawnX, fireballSpeed);
+        const fireballLanes = [
+            { y: FLOOR_Y - cat.height + 18, hitsCat: true },
+            { y: FLOOR_Y - cat.height - 42, hitsCat: false },
+            { y: FLOOR_Y - cat.height - 86, hitsCat: false }
+        ];
+        const lane = fireballLanes[Math.floor(Math.random() * fireballLanes.length)];
+        const unsafeDelay = lane.hitsCat ? getFireballDelay(fireballSpawnX, fireballSpeed) : 0;
 
         if (unsafeDelay > 0) {
             spawnHistory.pop();
@@ -132,16 +138,10 @@ function spawnObstacle() {
             return;
         }
 
-        const fireballHeights = [
-            FLOOR_Y - cat.height + 18,
-            FLOOR_Y - cat.height - 42,
-            FLOOR_Y - cat.height - 86
-        ];
-
         obstacles.push({
             type: "fireball",
             x: fireballSpawnX,
-            y: fireballHeights[Math.floor(Math.random() * fireballHeights.length)],
+            y: lane.y,
             width: 56,
             height: 38,
             hitPad: 8,
