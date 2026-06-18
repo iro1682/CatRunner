@@ -131,9 +131,8 @@ function spawnObstacle() {
         ];
         let lane = fireballLanes[Math.floor(Math.random() * fireballLanes.length)];
 
-        if (lane.hitsCat && isLowFireballUnsafe(fireballSpawnX, fireballSpeed)) {
-            const highLanes = fireballLanes.filter((fireballLane) => !fireballLane.hitsCat);
-            lane = highLanes[Math.floor(Math.random() * highLanes.length)];
+        if (isFireballDuringJumpWindow(fireballSpawnX, fireballSpeed)) {
+            lane = fireballLanes[0];
         }
 
         obstacles.push({
@@ -153,18 +152,18 @@ function spawnObstacle() {
     spawnTimer = minDelay + Math.random() * randomDelay;
 }
 
-function isLowFireballUnsafe(spawnX, fireballSpeed) {
+function isFireballDuringJumpWindow(spawnX, fireballSpeed) {
     const fireballArrivalTick = worldTick + (spawnX - cat.x) / fireballSpeed;
-    const unsafeStartOffset = 8;
-    const unsafeEndOffset = 74;
+    const jumpStartOffset = -28;
+    const jumpEndOffset = 88;
 
     return obstacles
         .filter((obstacle) => obstacle.type !== "fireball" && obstacle.x + obstacle.width > cat.x)
         .some((obstacle) => {
             const groundArrivalTick = worldTick + (obstacle.x - cat.x) / speed;
-            const unsafeStart = groundArrivalTick + unsafeStartOffset;
-            const unsafeEnd = groundArrivalTick + unsafeEndOffset;
-            return fireballArrivalTick >= unsafeStart && fireballArrivalTick <= unsafeEnd;
+            const jumpStart = groundArrivalTick + jumpStartOffset;
+            const jumpEnd = groundArrivalTick + jumpEndOffset;
+            return fireballArrivalTick >= jumpStart && fireballArrivalTick <= jumpEnd;
         });
 }
 
